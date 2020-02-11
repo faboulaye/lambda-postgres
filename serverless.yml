@@ -1,0 +1,17 @@
+service: services
+
+provider:
+  name: aws
+  runtime: python3.7
+
+stage: dev
+region: eu-east-1
+
+environment:
+  variable1: value1
+
+functions:
+  lambad-postgres: 
+    handler: services/postgres_connector.lambda_handler
+    runtime: python3.7
+    description: 'An AWS Lambda function processing step function'handler.main

@@ -1,0 +1,25 @@
+{
+  "name": "lambda-postgres",
+  "version": "1.0.0",
+  "description": "Connection of Lambda to AWS RDS",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/faboulaye/lambda-postgres.git"
+  },
+  "keywords": [
+    "aws",
+    "lambdas",
+    "postgres",
+    "rds"
+  ],
+  "author": "Firdaws Aboulaye",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/faboulaye/lambda-postgres/issues"
+  },
+  "homepage": "https://github.com/faboulaye/lambda-postgres#readme"
+}
