@@ -3,15 +3,34 @@ service: services
 provider:
   name: aws
   runtime: python3.7
+  stage: dev
+  region: eu-west-1
+  deploymentBucket:
+    name: allinone-aws-repo
+    serverSideEncryption: AES256
+  versionFunctions: true
 
-stage: dev
-region: eu-east-1
-
-environment:
-  variable1: value1
-
+# Lambdas
 functions:
-  lambad-postgres: 
+  PostgresConnector:
+    name: ${self:provider.stage}-postgres-connector
+    description: An AWS Lambda function processing connection on RDS - Postgres
     handler: services/postgres_connector.lambda_handler
+    environment:
+      RDS_HOST: xxxxxx
+      RDS_USER: xxxxxx
+      RDS_PWD: xxxxx
+      RDS_DB: xxxx
     runtime: python3.7
-    description: 'An AWS Lambda function processing step function'handler.main
+    memorySize: 128
+    timeout: 3
+    tags:
+      kind: poc
+      description: connector to rds
+
+Outputs:
+  PostgresConnectorARN:
+    Description: ARN of the lambda used to process connection on RDS
+    Value: !GetAtt [PostgresConnector, Arn]
+    Export:
+      Name: ${self:service}:${opt:stage}:PostgresConnectorARN

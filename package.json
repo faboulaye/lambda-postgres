@@ -4,6 +4,7 @@
   "description": "Connection of Lambda to AWS RDS",
   "main": "",
   "scripts": {
+    "start": "sls deploy -v",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
