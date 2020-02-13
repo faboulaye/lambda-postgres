@@ -27,11 +27,28 @@ logger.info("SUCCESS: Connection to RDS Postgres instance succeeded")
 
 
 def lambda_handler(event, context):
+    insert_data()
+    rows = read_data()
+    return {'statusCode': 200, 'body': rows}
+
+
+def read_data():
+    logger.info("Start fetching data...")
     with conn.cursor() as cursor:
         rows = []
         cursor.execute("select * from employe")
         for row in cursor:
             print(row)
             rows.append(row)
+    logger.info("End")
+    return rows
 
-        return {'statusCode': 200, 'body': rows}
+
+def insert_data():
+    logger.info("Start fetching data...")
+    with conn.cursor() as cursor:
+        for i in range(1, 10):
+            cursor.execute("INSERT INTO employe (id, name, email, department, salary) VALUES (%d, %s, %s, %s, %d)"
+                           % i, "Name %d" % i, "Email %d" % i, "Department %d" % i, 2500 + (i*10))
+        cursor.commit()
+    logger.info("End")

@@ -13,9 +13,9 @@ provider:
 # Lambdas
 functions:
   PostgresConnector:
-    name: ${self:provider.stage}-postgres-connector
+    name: postgres-connector-${self:provider.stage}
     description: An AWS Lambda function processing connection on RDS - Postgres
-    handler: services/postgres_connector.lambda_handler
+    handler: postgres_connector.lambda_handler
     environment:
       RDS_HOST: xxxxxx
       RDS_USER: xxxxxx
@@ -24,9 +24,28 @@ functions:
     runtime: python3.7
     memorySize: 128
     timeout: 3
+    role: PostgresConnectorRole
     tags:
       kind: poc
       description: connector to rds
+
+resources:
+  Resources:
+    PostgresConnectorRole:
+      Type: AWS::IAM::Role
+      Properties:
+        Path: /
+        RoleName: ${self:provider.stage}-postgres-connector-role
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
 
 Outputs:
   PostgresConnectorARN:
