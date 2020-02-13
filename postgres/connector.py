@@ -26,6 +26,7 @@ except:
 logger.info("SUCCESS: Connection to RDS Postgres instance succeeded")
 
 
+# Lambda main
 def lambda_handler(event, context):
     insert_data()
     rows = read_data()

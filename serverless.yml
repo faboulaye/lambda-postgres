@@ -15,7 +15,7 @@ functions:
   PostgresConnector:
     name: postgres-connector-${self:provider.stage}
     description: An AWS Lambda function processing connection on RDS - Postgres
-    handler: postgres_connector.lambda_handler
+    handler: postgres/connector.handler
     environment:
       RDS_HOST: xxxxxx
       RDS_USER: xxxxxx
@@ -23,19 +23,36 @@ functions:
       RDS_DB: xxxx
     runtime: python3.7
     memorySize: 128
-    timeout: 3
-    role: PostgresConnectorRole
+    timeout: 60
+    role: ConnectorRole
     tags:
       kind: poc
-      description: connector to rds
+      description: connector to rds postgres
+
+  AuroraConnector:
+    name: aurora-connector-${self:provider.stage}
+    description: An AWS Lambda function processing connection on RDS - Aurora
+    handler: aurora/connector.handler
+    environment:
+      RDS_HOST: xxxxxx
+      RDS_USER: xxxxxx
+      RDS_PWD: xxxxx
+      RDS_DB: xxxx
+    runtime: python3.7
+    memorySize: 128
+    timeout: 60
+    role: ConnectorRole
+    tags:
+      kind: poc
+      description: connector to rds aurora
 
 resources:
   Resources:
-    PostgresConnectorRole:
+    ConnectorRole:
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: ${self:provider.stage}-postgres-connector-role
+        RoleName: ${self:provider.stage}-rds-connector-role
         AssumeRolePolicyDocument:
           Version: "2012-10-17"
           Statement:
@@ -49,7 +66,13 @@ resources:
 
 Outputs:
   PostgresConnectorARN:
-    Description: ARN of the lambda used to process connection on RDS
+    Description: ARN of the lambda used to process connection on RDS - Postgres
     Value: !GetAtt [PostgresConnector, Arn]
     Export:
       Name: ${self:service}:${opt:stage}:PostgresConnectorARN
+
+  AuroraConnectorARN:
+    Description: ARN of the lambda used to process connection on RDS - Aurora
+    Value: !GetAtt [AuroraConnector, Arn]
+    Export:
+      Name: ${self:service}:${opt:stage}:AuroraConnectorARN
