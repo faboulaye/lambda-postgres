@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/faboulaye/lambda-postgres/issues"
   },
-  "homepage": "https://github.com/faboulaye/lambda-postgres#readme"
+  "homepage": "https://github.com/faboulaye/lambda-postgres#readme",
+  "devDependencies": {
+    "serverless-python-requirements": "^5.0.1"
+  }
 }

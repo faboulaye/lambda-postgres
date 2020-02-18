@@ -1,4 +1,9 @@
-service: services
+service: api-rds-connector
+
+custom:
+  pythonRequirements:
+    layer: true
+    slim: true
 
 provider:
   name: aws
@@ -9,30 +14,30 @@ provider:
     name: allinone-aws-repo
     serverSideEncryption: AES256
   versionFunctions: true
+  environment:
+    RDS_SECRET_DB_CREDENTIALS: ${self:service}/${self:provider.stage}/db-credentials
 
 package:
   exclude:
-    - "aurora/*.dist-info"
-    - "postgres/*.dist-info"
+    - .gitignore
+    - __pycache__/**
+    - node_modules/**
+    - .git/**
+    - package*
 
 # Lambdas
 functions:
-  PostgresConnector:
-    name: postgres-connector-${self:provider.stage}
-    description: An AWS Lambda function processing connection on RDS - Postgres
-    handler: connector.handler
-    environment:
-      RDS_HOST: xxxxxx
-      RDS_USER: xxxxxx
-      RDS_PWD: xxxxx
-      RDS_DB: xxxx
-    runtime: python3.7
-    memorySize: 128
+  employes:
+    name: employes-${self:provider.stage}
+    handler: employes.handler
     timeout: 30
     role: ConnectorRole
-    tags:
-      kind: poc
-      description: connector to rds postgres
+    layers:
+      - Ref: PythonRequirementsLambdaLayer
+    events:
+      - http:
+          path: employes
+          method: GET
 
 resources:
   Resources:
@@ -40,7 +45,7 @@ resources:
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: rds-connector-role-${self:provider.stage}
+        RoleName: ${self:service}-rds-employe-role-${self:provider.stage}
         AssumeRolePolicyDocument:
           Version: "2012-10-17"
           Statement:
@@ -52,7 +57,7 @@ resources:
         ManagedPolicyArns:
           - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         Policies:
-          - PolicyName: rds-logs-policy-${self:provider.stage}
+          - PolicyName: ${self:service}-rds-logs-policy-${self:provider.stage}
             PolicyDocument:
               Version: "2012-10-17"
               Statement:
@@ -84,9 +89,5 @@ resources:
                           - secret
                           - "*"
 
-Outputs:
-  PostgresConnectorARN:
-    Description: ARN of the lambda used to process connection on RDS - Postgres
-    Value: !GetAtt [PostgresConnector, Arn]
-    Export:
-      Name: ${self:service}:${opt:stage}:PostgresConnectorARN
+plugins:
+  - serverless-python-requirements
