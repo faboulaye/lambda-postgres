@@ -10,12 +10,17 @@ provider:
     serverSideEncryption: AES256
   versionFunctions: true
 
+package:
+  exclude:
+    - "aurora/*.dist-info"
+    - "postgres/*.dist-info"
+
 # Lambdas
 functions:
   PostgresConnector:
     name: postgres-connector-${self:provider.stage}
     description: An AWS Lambda function processing connection on RDS - Postgres
-    handler: postgres/connector.handler
+    handler: connector.handler
     environment:
       RDS_HOST: xxxxxx
       RDS_USER: xxxxxx
@@ -23,28 +28,11 @@ functions:
       RDS_DB: xxxx
     runtime: python3.7
     memorySize: 128
-    timeout: 60
+    timeout: 30
     role: ConnectorRole
     tags:
       kind: poc
       description: connector to rds postgres
-
-  AuroraConnector:
-    name: aurora-connector-${self:provider.stage}
-    description: An AWS Lambda function processing connection on RDS - Aurora
-    handler: aurora/connector.handler
-    environment:
-      RDS_HOST: xxxxxx
-      RDS_USER: xxxxxx
-      RDS_PWD: xxxxx
-      RDS_DB: xxxx
-    runtime: python3.7
-    memorySize: 128
-    timeout: 60
-    role: ConnectorRole
-    tags:
-      kind: poc
-      description: connector to rds aurora
 
 resources:
   Resources:
@@ -52,7 +40,7 @@ resources:
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: ${self:provider.stage}-rds-connector-role
+        RoleName: rds-connector-role-${self:provider.stage}
         AssumeRolePolicyDocument:
           Version: "2012-10-17"
           Statement:
@@ -63,6 +51,38 @@ resources:
               Action: sts:AssumeRole
         ManagedPolicyArns:
           - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        Policies:
+          - PolicyName: rds-logs-policy-${self:provider.stage}
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - "Fn::Join":
+                        - ":"
+                        - - "arn:aws:logs"
+                          - ${self:provider.region}
+                          - Ref: "AWS::AccountId"
+                          - "log-group:/aws/lambda/*:*:*"
+          - PolicyName: rds-secretmanager-policy-${self:provider.stage}
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                  Resource:
+                    - Fn::Join:
+                        - ":"
+                        - - arn:aws:secretsmanager
+                          - ${self:provider.region}
+                          - Ref: "AWS::AccountId"
+                          - secret
+                          - "*"
 
 Outputs:
   PostgresConnectorARN:
@@ -70,9 +90,3 @@ Outputs:
     Value: !GetAtt [PostgresConnector, Arn]
     Export:
       Name: ${self:service}:${opt:stage}:PostgresConnectorARN
-
-  AuroraConnectorARN:
-    Description: ARN of the lambda used to process connection on RDS - Aurora
-    Value: !GetAtt [AuroraConnector, Arn]
-    Export:
-      Name: ${self:service}:${opt:stage}:AuroraConnectorARN
